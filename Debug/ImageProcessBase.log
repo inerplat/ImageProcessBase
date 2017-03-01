@@ -1,0 +1,5 @@
+﻿  ImageProcessBaseDlg.cpp
+ImageProcessBase.obj : warning LNK4258: '/entry:WinMainCRTStartup' 지시문은 '/ENTRY:wWinMainCRTStartup' 스위치와 호환되지 않습니다. 무시됩니다.
+ImageProcessBaseDlg.obj : warning LNK4258: '/entry:WinMainCRTStartup' 지시문은 '/ENTRY:wWinMainCRTStartup' 스위치와 호환되지 않습니다. 무시됩니다.
+  ImageProcessBase.vcxproj -> C:\Users\DH Kim\Desktop\ImageProcessBase\Debug\ImageProcessBase.exe
+  ImageProcessBase.vcxproj -> C:\Users\DH Kim\Desktop\ImageProcessBase\Debug\ImageProcessBase.pdb (Partial PDB)
