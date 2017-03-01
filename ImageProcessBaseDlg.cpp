@@ -238,12 +238,13 @@ LRESULT CALLBACK CallbackOnFrame(HWND hWnd, LPVIDEOHDR lpVHdr)
 /////////////////////////////////////////////////////////////////////////////////
 	// RGB영상처리부분
 
-	for (j = 0; j < nHeight; j++) { 
-		for (i = 0; i < nWidth; i++) { 
-			if (RGB[j][i][RED] < 50 && RGB[j][i][BLUE] < 50 && RGB[j][i][GREEN] < 50)
-			RGB[j][i][RED] = RGB[j][i][GREEN] = RGB[j][i][BLUE] = 255;
-			}
+	int gray;
+	for (j = 0; j < nHeight; j++) {
+		for (i = 0; i < nWidth; i++) {
+			gray = (RGB[j][i][RED] + RGB[j][i][BLUE] + RGB[j][i][GREEN]) / 3;
+			RGB[j][i][RED] = RGB[j][i][BLUE] = RGB[j][i][GREEN] = gray;
 		}
+	}
 
 
 
