@@ -21,8 +21,10 @@ BITMAPINFO BmInfo;
 LPBYTE pImgBuffer;
 
 unsigned char gray[485][645] = { 0 };
+int histogram[256];
 
 int Tmax;
+int sum, hist[256];
 int T = 5, darkCnt = 0, brightCnt = 0;
 double darkAvg = 0, brightAvg = 0;
 double alpha, beta;
@@ -245,56 +247,37 @@ LRESULT CALLBACK CallbackOnFrame(HWND hWnd, LPVIDEOHDR lpVHdr)
 	/////////////////////////////////////////////////////////////////////////////////
 	// RGB변환
 
+	for (i = 0; i < 256; i++) histogram[i] = 0;
+	sum = 0;
 	for (j = 0; j < nHeight; j++) {
 		for (i = 0; i < nWidth; i++) {
 			gray[j][i] = (RGB[j][i][RED] + RGB[j][i][BLUE] + RGB[j][i][GREEN]) / 3;
-
+			histogram[gray[j][i]]++;
 		}
+	}
+	
+	for (i = 0; i < 256; i++)
+	{
+		sum += histogram[i];
+		hist[i] = (int)( (double) sum * ( (double) 255 / (double) (nWidth*nHeight) ) + 0.5);
+
+	}
+	
+	for(i=0;i<nHeight;i++)
+	{
+		for (j = 0; j < nWidth; j++)
+		{
+			gray[i][j] = hist[gray[i][j]];
+			RGB[i][j][RED] = RGB[i][j][BLUE] = RGB[i][j][GREEN] = gray[i][j];
+		}
+
 	}
 
 	//////////////////////////////////////////////////////////////////////////////////
 
-	VarMax = -1;
-	for (T = 35; T < 185; T++)
-	{
-		darkCnt = brightCnt = darkAvg = brightAvg = 0;
-		for (j = 0; j < nHeight; j++)
-		{
-			for (i = 0; i < nWidth; i++)
-			{
-				if (gray[j][i] < T)
-				{
-					darkCnt++;
-					darkAvg += gray[j][i];
-				}
-				else
-				{
-					brightCnt++;
-					brightAvg += gray[j][i];
-				}
 
-			}
-		}
-		darkAvg = darkAvg / (double) (!darkCnt ? 1 : darkCnt);
-		brightAvg = brightAvg / (double) (!brightCnt ? 1 : brightCnt);
-		alpha = ((double)brightCnt / (double)(640 * 480)) * (double)100;
-		beta = ((double)darkCnt / (double)(640 * 480)) * (double)100;
-		if (VarMax < alpha*beta*pow(darkAvg - brightAvg, 2))
-		{
-			Tmax = T;
-			VarMax = alpha*beta*pow(darkAvg - brightAvg, 2);
-		}
 
-	}
-
-	for (j = 0; j < nHeight; j++) {
-		for (i = 0; i < nWidth; i++) {
-			if (gray[j][i] < Tmax) RGB[j][i][RED] = RGB[j][i][BLUE] = RGB[j][i][GREEN] = 0;
-			else  RGB[j][i][RED] = RGB[j][i][BLUE] = RGB[j][i][GREEN] = 255;
-
-		}
-	}
-
+	//////////////////////////////////////////////////////////////////////////////////
 	// RGB ---> YUY2 
 
 	for (j = 0; j < nHeight; j++) { // height
