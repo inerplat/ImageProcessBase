@@ -263,7 +263,7 @@ LRESULT CALLBACK CallbackOnFrame(HWND hWnd, LPVIDEOHDR lpVHdr)
 
 	}
 	
-	for(i=0;i<nHeight;i++)
+	for (i = 0; i < nHeight; i++)
 	{
 		for (j = 0; j < nWidth; j++)
 		{
@@ -272,12 +272,8 @@ LRESULT CALLBACK CallbackOnFrame(HWND hWnd, LPVIDEOHDR lpVHdr)
 		}
 
 	}
-
 	//////////////////////////////////////////////////////////////////////////////////
-
-
-
-	//////////////////////////////////////////////////////////////////////////////////
+	
 	// RGB ---> YUY2 
 
 	for (j = 0; j < nHeight; j++) { // height
