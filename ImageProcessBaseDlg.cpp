@@ -1,5 +1,5 @@
 
-// ImageProcessBaseDlg.cpp : ±¸Çö ÆÄÀÏ
+// ImageProcessBaseDlg.cpp : êµ¬í˜„ íŒŒì¼
 //
 
 
@@ -20,23 +20,30 @@
 BITMAPINFO BmInfo;
 LPBYTE pImgBuffer;
 
+unsigned char gray[485][645] = { 0 };
 
-// ÀÀ¿ë ÇÁ·Î±×·¥ Á¤º¸¿¡ »ç¿ëµÇ´Â CAboutDlg ´ëÈ­ »óÀÚÀÔ´Ï´Ù.
+int Tmax;
+int T = 5, darkCnt = 0, brightCnt = 0;
+double darkAvg = 0, brightAvg = 0;
+double alpha, beta;
+double VarMax;
+
+// ì‘ìš© í”„ë¡œê·¸ë¨ ì •ë³´ì— ì‚¬ìš©ë˜ëŠ” CAboutDlg ëŒ€í™” ìƒìì…ë‹ˆë‹¤.
 
 class CAboutDlg : public CDialogEx
 {
 public:
 	CAboutDlg();
 
-// ´ëÈ­ »óÀÚ µ¥ÀÌÅÍÀÔ´Ï´Ù.
+	// ëŒ€í™” ìƒì ë°ì´í„°ì…ë‹ˆë‹¤.
 #ifdef AFX_DESIGN_TIME
 	enum { IDD = IDD_ABOUTBOX };
 #endif
 
-	protected:
-	virtual void DoDataExchange(CDataExchange* pDX);    // DDX/DDV Áö¿øÀÔ´Ï´Ù.
+protected:
+	virtual void DoDataExchange(CDataExchange* pDX);    // DDX/DDV ì§€ì›ì…ë‹ˆë‹¤.
 
-// ±¸ÇöÀÔ´Ï´Ù.
+														// êµ¬í˜„ì…ë‹ˆë‹¤.
 protected:
 	DECLARE_MESSAGE_MAP()
 };
@@ -54,7 +61,7 @@ BEGIN_MESSAGE_MAP(CAboutDlg, CDialogEx)
 END_MESSAGE_MAP()
 
 
-// CImageProcessBaseDlg ´ëÈ­ »óÀÚ
+// CImageProcessBaseDlg ëŒ€í™” ìƒì
 
 
 
@@ -76,15 +83,15 @@ BEGIN_MESSAGE_MAP(CImageProcessBaseDlg, CDialog)
 END_MESSAGE_MAP()
 
 
-// CImageProcessBaseDlg ¸Ş½ÃÁö Ã³¸®±â
+// CImageProcessBaseDlg ë©”ì‹œì§€ ì²˜ë¦¬ê¸°
 
 BOOL CImageProcessBaseDlg::OnInitDialog()
 {
 	CDialog::OnInitDialog();
 
-	// ½Ã½ºÅÛ ¸Ş´º¿¡ "Á¤º¸..." ¸Ş´º Ç×¸ñÀ» Ãß°¡ÇÕ´Ï´Ù.
+	// ì‹œìŠ¤í…œ ë©”ë‰´ì— "ì •ë³´..." ë©”ë‰´ í•­ëª©ì„ ì¶”ê°€í•©ë‹ˆë‹¤.
 
-	// IDM_ABOUTBOX´Â ½Ã½ºÅÛ ¸í·É ¹üÀ§¿¡ ÀÖ¾î¾ß ÇÕ´Ï´Ù.
+	// IDM_ABOUTBOXëŠ” ì‹œìŠ¤í…œ ëª…ë ¹ ë²”ìœ„ì— ìˆì–´ì•¼ í•©ë‹ˆë‹¤.
 	ASSERT((IDM_ABOUTBOX & 0xFFF0) == IDM_ABOUTBOX);
 	ASSERT(IDM_ABOUTBOX < 0xF000);
 
@@ -102,35 +109,35 @@ BOOL CImageProcessBaseDlg::OnInitDialog()
 		}
 	}
 
-	// ÀÌ ´ëÈ­ »óÀÚÀÇ ¾ÆÀÌÄÜÀ» ¼³Á¤ÇÕ´Ï´Ù.  ÀÀ¿ë ÇÁ·Î±×·¥ÀÇ ÁÖ Ã¢ÀÌ ´ëÈ­ »óÀÚ°¡ ¾Æ´Ò °æ¿ì¿¡´Â
-	//  ÇÁ·¹ÀÓ¿öÅ©°¡ ÀÌ ÀÛ¾÷À» ÀÚµ¿À¸·Î ¼öÇàÇÕ´Ï´Ù.
-	SetIcon(m_hIcon, TRUE);			// Å« ¾ÆÀÌÄÜÀ» ¼³Á¤ÇÕ´Ï´Ù.
-	SetIcon(m_hIcon, FALSE);		// ÀÛÀº ¾ÆÀÌÄÜÀ» ¼³Á¤ÇÕ´Ï´Ù.
+	// ì´ ëŒ€í™” ìƒìì˜ ì•„ì´ì½˜ì„ ì„¤ì •í•©ë‹ˆë‹¤.  ì‘ìš© í”„ë¡œê·¸ë¨ì˜ ì£¼ ì°½ì´ ëŒ€í™” ìƒìê°€ ì•„ë‹ ê²½ìš°ì—ëŠ”
+	//  í”„ë ˆì„ì›Œí¬ê°€ ì´ ì‘ì—…ì„ ìë™ìœ¼ë¡œ ìˆ˜í–‰í•©ë‹ˆë‹¤.
+	SetIcon(m_hIcon, TRUE);			// í° ì•„ì´ì½˜ì„ ì„¤ì •í•©ë‹ˆë‹¤.
+	SetIcon(m_hIcon, FALSE);		// ì‘ì€ ì•„ì´ì½˜ì„ ì„¤ì •í•©ë‹ˆë‹¤.
 
-	RECT m_Rect = { 0, 0, 640, 480 };     // »ı¼ºÇÏ°í ½ÍÀº »çÀÌÁî¸¦ RECT º¯¼ö¿¡ ÃÊ±âÈ­. 
+	RECT m_Rect = { 0, 0, 640, 480 };     // ìƒì„±í•˜ê³  ì‹¶ì€ ì‚¬ì´ì¦ˆë¥¼ RECT ë³€ìˆ˜ì— ì´ˆê¸°í™”. 
 
 	AdjustWindowRect(&m_Rect, WS_OVERLAPPEDWINDOW, FALSE);
 	int width = m_Rect.right - m_Rect.left;
 	int height = m_Rect.bottom - m_Rect.top;
 	this->SetWindowPos(NULL, 0, 0, width, height, SWP_NOSIZE);
 
-	// À©µµ¿ì »ı¼º
+	// ìœˆë„ìš° ìƒì„±
 	m_Cap = capCreateCaptureWindow(TEXT("Image Test"), WS_CHILD
 		| WS_VISIBLE, 0, 0, 640, 480, this->m_hWnd, NULL);
 
-	// Äİ¹éÇÔ¼ö ÁöÁ¤
+	// ì½œë°±í•¨ìˆ˜ ì§€ì •
 	if (capSetCallbackOnFrame(m_Cap, CallbackOnFrame) == FALSE) {
 		return FALSE;
 	}
 
-	// Ä«¸Ş¶ó µå¶óÀÌ¹ö¿Í ¿¬°á
+	// ì¹´ë©”ë¼ ë“œë¼ì´ë²„ì™€ ì—°ê²°
 	if (capDriverConnect(m_Cap, 0) == FALSE) {
 		return FALSE;
 	}
 
-	capPreviewRate(m_Cap, 33);    // ÃÊ´ç ÇÁ·¹ÀÓ ÁöÁ¤
+	capPreviewRate(m_Cap, 33);    // ì´ˆë‹¹ í”„ë ˆì„ ì§€ì •
 	capOverlay(m_Cap, false);
-	capPreview(m_Cap, true);        // ¹Ì¸®º¸±â ±â´É ¼³Á¤
+	capPreview(m_Cap, true);        // ë¯¸ë¦¬ë³´ê¸° ê¸°ëŠ¥ ì„¤ì •
 
 	if (BmInfo.bmiHeader.biBitCount != 24) {
 
@@ -138,11 +145,11 @@ BOOL CImageProcessBaseDlg::OnInitDialog()
 		BmInfo.bmiHeader.biCompression = 0;
 		BmInfo.bmiHeader.biSizeImage = BmInfo.bmiHeader.biWidth * BmInfo.bmiHeader.biHeight * 3;
 
-	
+
 		capGetVideoFormat(m_Cap, &BmInfo, sizeof(BITMAPINFO));
 	}
 
-	return TRUE;  // Æ÷Ä¿½º¸¦ ÄÁÆ®·Ñ¿¡ ¼³Á¤ÇÏÁö ¾ÊÀ¸¸é TRUE¸¦ ¹İÈ¯ÇÕ´Ï´Ù.
+	return TRUE;  // í¬ì»¤ìŠ¤ë¥¼ ì»¨íŠ¸ë¡¤ì— ì„¤ì •í•˜ì§€ ì•Šìœ¼ë©´ TRUEë¥¼ ë°˜í™˜í•©ë‹ˆë‹¤.
 }
 
 void CImageProcessBaseDlg::OnSysCommand(UINT nID, LPARAM lParam)
@@ -158,19 +165,19 @@ void CImageProcessBaseDlg::OnSysCommand(UINT nID, LPARAM lParam)
 	}
 }
 
-// ´ëÈ­ »óÀÚ¿¡ ÃÖ¼ÒÈ­ ´ÜÃß¸¦ Ãß°¡ÇÒ °æ¿ì ¾ÆÀÌÄÜÀ» ±×¸®·Á¸é
-//  ¾Æ·¡ ÄÚµå°¡ ÇÊ¿äÇÕ´Ï´Ù.  ¹®¼­/ºä ¸ğµ¨À» »ç¿ëÇÏ´Â MFC ÀÀ¿ë ÇÁ·Î±×·¥ÀÇ °æ¿ì¿¡´Â
-//  ÇÁ·¹ÀÓ¿öÅ©¿¡¼­ ÀÌ ÀÛ¾÷À» ÀÚµ¿À¸·Î ¼öÇàÇÕ´Ï´Ù.
+// ëŒ€í™” ìƒìì— ìµœì†Œí™” ë‹¨ì¶”ë¥¼ ì¶”ê°€í•  ê²½ìš° ì•„ì´ì½˜ì„ ê·¸ë¦¬ë ¤ë©´
+//  ì•„ë˜ ì½”ë“œê°€ í•„ìš”í•©ë‹ˆë‹¤.  ë¬¸ì„œ/ë·° ëª¨ë¸ì„ ì‚¬ìš©í•˜ëŠ” MFC ì‘ìš© í”„ë¡œê·¸ë¨ì˜ ê²½ìš°ì—ëŠ”
+//  í”„ë ˆì„ì›Œí¬ì—ì„œ ì´ ì‘ì—…ì„ ìë™ìœ¼ë¡œ ìˆ˜í–‰í•©ë‹ˆë‹¤.
 
 void CImageProcessBaseDlg::OnPaint()
 {
 	if (IsIconic())
 	{
-		CPaintDC dc(this); // ±×¸®±â¸¦ À§ÇÑ µğ¹ÙÀÌ½º ÄÁÅØ½ºÆ®ÀÔ´Ï´Ù.
+		CPaintDC dc(this); // ê·¸ë¦¬ê¸°ë¥¼ ìœ„í•œ ë””ë°”ì´ìŠ¤ ì»¨í…ìŠ¤íŠ¸ì…ë‹ˆë‹¤.
 
 		SendMessage(WM_ICONERASEBKGND, reinterpret_cast<WPARAM>(dc.GetSafeHdc()), 0);
 
-		// Å¬¶óÀÌ¾ğÆ® »ç°¢Çü¿¡¼­ ¾ÆÀÌÄÜÀ» °¡¿îµ¥¿¡ ¸ÂÃä´Ï´Ù.
+		// í´ë¼ì´ì–¸íŠ¸ ì‚¬ê°í˜•ì—ì„œ ì•„ì´ì½˜ì„ ê°€ìš´ë°ì— ë§ì¶¥ë‹ˆë‹¤.
 		int cxIcon = GetSystemMetrics(SM_CXICON);
 		int cyIcon = GetSystemMetrics(SM_CYICON);
 		CRect rect;
@@ -178,7 +185,7 @@ void CImageProcessBaseDlg::OnPaint()
 		int x = (rect.Width() - cxIcon + 1) / 2;
 		int y = (rect.Height() - cyIcon + 1) / 2;
 
-		// ¾ÆÀÌÄÜÀ» ±×¸³´Ï´Ù.
+		// ì•„ì´ì½˜ì„ ê·¸ë¦½ë‹ˆë‹¤.
 		dc.DrawIcon(x, y, m_hIcon);
 	}
 	else
@@ -187,8 +194,8 @@ void CImageProcessBaseDlg::OnPaint()
 	}
 }
 
-// »ç¿ëÀÚ°¡ ÃÖ¼ÒÈ­µÈ Ã¢À» ²ô´Â µ¿¾È¿¡ Ä¿¼­°¡ Ç¥½ÃµÇµµ·Ï ½Ã½ºÅÛ¿¡¼­
-//  ÀÌ ÇÔ¼ö¸¦ È£ÃâÇÕ´Ï´Ù.
+// ì‚¬ìš©ìê°€ ìµœì†Œí™”ëœ ì°½ì„ ë„ëŠ” ë™ì•ˆì— ì»¤ì„œê°€ í‘œì‹œë˜ë„ë¡ ì‹œìŠ¤í…œì—ì„œ
+//  ì´ í•¨ìˆ˜ë¥¼ í˜¸ì¶œí•©ë‹ˆë‹¤.
 HCURSOR CImageProcessBaseDlg::OnQueryDragIcon()
 {
 	return static_cast<HCURSOR>(m_hIcon);
@@ -235,22 +242,60 @@ LRESULT CALLBACK CallbackOnFrame(HWND hWnd, LPVIDEOHDR lpVHdr)
 		}
 	}
 
-/////////////////////////////////////////////////////////////////////////////////
-	// RGB¿µ»óÃ³¸®ºÎºĞ
+	/////////////////////////////////////////////////////////////////////////////////
+	// RGBë³€í™˜
 
-	int gray;
 	for (j = 0; j < nHeight; j++) {
 		for (i = 0; i < nWidth; i++) {
-			gray = (RGB[j][i][RED] + RGB[j][i][BLUE] + RGB[j][i][GREEN]) / 3;
-			RGB[j][i][RED] = RGB[j][i][BLUE] = RGB[j][i][GREEN] = gray;
+			gray[j][i] = (RGB[j][i][RED] + RGB[j][i][BLUE] + RGB[j][i][GREEN]) / 3;
+
 		}
 	}
 
+	//////////////////////////////////////////////////////////////////////////////////
 
+	VarMax = -1;
+	for (T = 35; T < 185; T++)
+	{
+		darkCnt = brightCnt = darkAvg = brightAvg = 0;
+		for (j = 0; j < nHeight; j++)
+		{
+			for (i = 0; i < nWidth; i++)
+			{
+				if (gray[j][i] < T)
+				{
+					darkCnt++;
+					darkAvg += gray[j][i];
+				}
+				else
+				{
+					brightCnt++;
+					brightAvg += gray[j][i];
+				}
 
-//////////////////////////////////////////////////////////////////////////////////
+			}
+		}
+		darkAvg = darkAvg / (double) (!darkCnt ? 1 : darkCnt);
+		brightAvg = brightAvg / (double) (!brightCnt ? 1 : brightCnt);
+		alpha = ((double)brightCnt / (double)(640 * 480)) * (double)100;
+		beta = ((double)darkCnt / (double)(640 * 480)) * (double)100;
+		if (VarMax < alpha*beta*pow(darkAvg - brightAvg, 2))
+		{
+			Tmax = T;
+			VarMax = alpha*beta*pow(darkAvg - brightAvg, 2);
+		}
 
-// RGB ---> YUY2 
+	}
+
+	for (j = 0; j < nHeight; j++) {
+		for (i = 0; i < nWidth; i++) {
+			if (gray[j][i] < Tmax) RGB[j][i][RED] = RGB[j][i][BLUE] = RGB[j][i][GREEN] = 0;
+			else  RGB[j][i][RED] = RGB[j][i][BLUE] = RGB[j][i][GREEN] = 255;
+
+		}
+	}
+
+	// RGB ---> YUY2 
 
 	for (j = 0; j < nHeight; j++) { // height
 		for (i = 0; i < nWidth; i += 2) { //width
@@ -269,5 +314,6 @@ LRESULT CALLBACK CallbackOnFrame(HWND hWnd, LPVIDEOHDR lpVHdr)
 	}
 	return (LRESULT)true;
 }
+
 
 
