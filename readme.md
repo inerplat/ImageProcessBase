@@ -3,7 +3,7 @@
 
 ---
 
-### 설명1
+## 설명1
 
 1. 영상은 기본적으로 배열이나 포인터를 이용해서 저장합니다.
 
@@ -22,7 +22,7 @@
 
 ---
 
-### 과제1
+## 과제1
 
 1. RGB로 구성된 영상을 gray영상으로 변환하세요
 
@@ -31,10 +31,9 @@
   1-1. YUV(YCbCr)로 구성된 영상을 gray scale로 변환하세요
 
 ---
----
 
-### 설명2
-#### [영상이진화(Threshold)](http://homepages.inf.ed.ac.uk/rbf/HIPR2/thrshb.gif)
+## 설명2
+### [영상이진화(Threshold)](http://homepages.inf.ed.ac.uk/rbf/HIPR2/threshld.htm)
 영상 이진화는 color 혹은 gray scale로 이루어진 이미지를 0(검정), 1(흰색)(혹은 255)으로 변환시키는 것을 의미합니다.
 임계값 T(밝기)를 기준으로 즉 T보다 어두운 픽셀은 검정으로, T보다 밝은 픽셀은 흰색으로 변환합니다.
 
@@ -64,7 +63,7 @@ OpenCV에서 adaptiveThreshold라는 이름으로 제공하는 함수에서는 �
 
 ---
 
-### 과제 2
+## 과제 2
 
 1.  Otsu's method를 이용한 전역고정이진화를 구현하시오
 
