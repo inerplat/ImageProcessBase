@@ -12,6 +12,7 @@
 #define GREEN 1
 #define BLUE 2
 #define CLIP(x) (((x) <0)?0:(((x)>255)?255:(x)))
+#define MASK 9
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -222,6 +223,7 @@ LRESULT CALLBACK CallbackOnFrame(HWND hWnd, LPVIDEOHDR lpVHdr)
 	unsigned int nWidth, nHeight;
 	unsigned int i, j;
 	int Y0, U, Y1, V;
+	int maskSize;
 
 	nWidth = 640;
 	nHeight = 480;
@@ -243,6 +245,7 @@ LRESULT CALLBACK CallbackOnFrame(HWND hWnd, LPVIDEOHDR lpVHdr)
 			RGB[j][i + 1][BLUE] = (int)CLIP(Y1 + 1.7790*(U - 128));
 		}
 	}
+
 
 	/////////////////////////////////////////////////////////////////////////////////
 	// otsu threshholding ///////////////////////////////////////////////////////////
@@ -299,10 +302,10 @@ OTSU:
 	}
 
 */
-	/////////////////////////////////////////////////////////////////////////////////
-	// Intensity histogram
-	/////////////////////////////////////////////////////////////////////////////////
-/*
+	///////////////////////////////////////////////////////////////////////////////////////
+	// Intensity histogram/////////////////////////////////////////////////////////////////
+	///////////////////////////////////////////////////////////////////////////////////////
+	/*
 HISTOGRAM:
 	for (i = 0; i < 256; i++) histogram[i] = 0; //히스토그램 초기화
 	sum = 0;
@@ -312,7 +315,7 @@ HISTOGRAM:
 			histogram[gray[j][i]]++; // 히스토그램 생성
 		}
 	}
-	
+
 	for (i = 0; i < 256; i++)
 	{
 		sum += histogram[i];
@@ -330,10 +333,37 @@ HISTOGRAM:
 
 	}
 	*/
+	////////////////////////////////////////////////////////////////////////////////////////////////
+	// Localy adaptive thresholding ////////////////////////////////////////////////////////////////
+	////////////////////////////////////////////////////////////////////////////////////////////////
+ATHRESHOLD:
+	for (j = 0; j < nHeight; j++) {
+		for (i = 0; i < nWidth; i++) {
+			gray[j][i] = (RGB[j][i][RED] + RGB[j][i][BLUE] + RGB[j][i][GREEN]) / 3; // grayscale
 
-	//////////////////////////////////////////////////////////////////////////////////
-	//////////////////////////////////////////////////////////////////////////////////
-	
+		}
+	}
+
+	for (i = 0; i <= nHeight; i++)
+	{
+		for (j = 0; j <= nWidth; j++)
+		{
+			maskSize = MASK*MASK;
+			sum = 0;
+			for (int m = -(MASK / 2); m <= MASK / 2; m++)
+			{
+				for (int n = -(MASK / 2); n <= MASK / 2; n++)
+				{
+					if (i + m > 0 && i + m < nHeight && j + n>0 && j + n < nWidth) sum += gray[i + m][j + n];
+					else maskSize--;
+				}
+			}
+			sum /= maskSize;
+			if (gray[i][j]>sum - 3) RGB[i][j][RED] = RGB[i][j][BLUE] = RGB[i][j][GREEN] = 255;
+			else RGB[i][j][RED] = RGB[i][j][BLUE] = RGB[i][j][GREEN] = 0;
+		}
+	}
+	//////////////////////////////////////////////////////////////////////////////////////////////////////////
 	// RGB ---> YUY2 
 
 	for (j = 0; j < nHeight; j++) { // height
