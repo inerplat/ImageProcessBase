@@ -245,21 +245,78 @@ LRESULT CALLBACK CallbackOnFrame(HWND hWnd, LPVIDEOHDR lpVHdr)
 	}
 
 	/////////////////////////////////////////////////////////////////////////////////
-	// RGB변환
+	// otsu threshholding ///////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////
+/*
+OTSU:
 
-	for (i = 0; i < 256; i++) histogram[i] = 0;
+	for (j = 0; j < nHeight; j++) {
+		for (i = 0; i < nWidth; i++) {
+			gray[j][i] = (RGB[j][i][RED] + RGB[j][i][BLUE] + RGB[j][i][GREEN]) / 3; // grayscale
+
+		}
+	}
+
+	VarMax = -1;
+	for (T = 35; T < 185; T++)
+	{
+		darkCnt = brightCnt = darkAvg = brightAvg = 0;
+		for (j = 0; j < nHeight; j++)
+		{
+			for (i = 0; i < nWidth; i++)
+			{
+				if (gray[j][i] < T)
+				{
+					darkCnt++;
+					darkAvg += gray[j][i];
+				}
+				else
+				{
+					brightCnt++;
+					brightAvg += gray[j][i];
+				}
+
+			}
+		}
+		darkAvg = darkAvg / (double)(!darkCnt ? 1 : darkCnt);
+		brightAvg = brightAvg / (double)(!brightCnt ? 1 : brightCnt);
+		alpha = ((double)brightCnt / (double)(nHeight * nWidth)) * (double)100;
+		beta = ((double)darkCnt / (double)(nHeight * nWidth)) * (double)100;
+		if (VarMax < alpha*beta*pow(darkAvg - brightAvg, 2))
+		{
+			Tmax = T;
+			VarMax = alpha*beta*pow(darkAvg - brightAvg, 2);
+		}
+
+	}
+
+	for (j = 0; j < nHeight; j++) {
+		for (i = 0; i < nWidth; i++) {
+			if (gray[j][i] < Tmax) RGB[j][i][RED] = RGB[j][i][BLUE] = RGB[j][i][GREEN] = 0;
+			else  RGB[j][i][RED] = RGB[j][i][BLUE] = RGB[j][i][GREEN] = 255;
+
+		}
+	}
+
+*/
+	/////////////////////////////////////////////////////////////////////////////////
+	// Intensity histogram
+	/////////////////////////////////////////////////////////////////////////////////
+/*
+HISTOGRAM:
+	for (i = 0; i < 256; i++) histogram[i] = 0; //히스토그램 초기화
 	sum = 0;
 	for (j = 0; j < nHeight; j++) {
 		for (i = 0; i < nWidth; i++) {
 			gray[j][i] = (RGB[j][i][RED] + RGB[j][i][BLUE] + RGB[j][i][GREEN]) / 3;
-			histogram[gray[j][i]]++;
+			histogram[gray[j][i]]++; // 히스토그램 생성
 		}
 	}
 	
 	for (i = 0; i < 256; i++)
 	{
 		sum += histogram[i];
-		hist[i] = (int)( (double) sum * ( (double) 255 / (double) (nWidth*nHeight) ) + 0.5);
+		hist[i] = (int)( (double) sum * ( (double) 255 / (double) (nWidth*nHeight) ) + 0.5); // 누적합*((최대밝기/전체영상사이즈)+0.5[반올림])
 
 	}
 	
@@ -272,6 +329,9 @@ LRESULT CALLBACK CallbackOnFrame(HWND hWnd, LPVIDEOHDR lpVHdr)
 		}
 
 	}
+	*/
+
+	//////////////////////////////////////////////////////////////////////////////////
 	//////////////////////////////////////////////////////////////////////////////////
 	
 	// RGB ---> YUY2 
