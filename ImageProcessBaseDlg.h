@@ -4,7 +4,7 @@
 #include "vfw.h"
 #include "afxwin.h"
 #include <stdio.h>
-
+#include <stdlib.h>
 #define    _DEF_WEBCAM        1000
 
 LRESULT CALLBACK CallbackOnFrame(HWND hWnd, LPVIDEOHDR lpVHdr);
@@ -12,7 +12,7 @@ LRESULT CALLBACK CallbackOnFrame(HWND hWnd, LPVIDEOHDR lpVHdr);
 // CImageProcessBaseDlg 대화 상자
 class CImageProcessBaseDlg : public CDialog
 {
-// 생성입니다.
+	// 생성입니다.
 public:
 	CImageProcessBaseDlg(CWnd* pParent = NULL);	// 표준 생성자입니다.
 	void OnDestroy();
@@ -21,16 +21,16 @@ public:
 	HWND m_Cap;
 	CStatic m_stDisplay;
 
-// 대화 상자 데이터입니다.
+	// 대화 상자 데이터입니다.
 #ifdef AFX_DESIGN_TIME
 	enum { IDD = IDD_IMAGEPROCESSBASE_DIALOG };
 #endif
 
-	protected:
+protected:
 	virtual void DoDataExchange(CDataExchange* pDX);	// DDX/DDV 지원입니다.
 
 
-// 구현입니다.
+														// 구현입니다.
 protected:
 	HICON m_hIcon;
 

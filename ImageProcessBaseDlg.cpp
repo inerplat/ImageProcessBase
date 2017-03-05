@@ -1,4 +1,3 @@
-
 // ImageProcessBaseDlg.cpp : 구현 파일
 //
 
@@ -21,16 +20,17 @@
 BITMAPINFO BmInfo;
 LPBYTE pImgBuffer;
 
-unsigned char gray[485][645] = { 0 };
 int histogram[256];
 
-int Tmax;
-int sum, hist[256];
-int T = 5, darkCnt = 0, brightCnt = 0;
-double darkAvg = 0, brightAvg = 0;
-double alpha, beta;
-double VarMax;
+unsigned char gray[485][645] = { 0 };
 
+double alpha, beta;
+
+
+void RGB2GRAY(unsigned char **RGB[3],int nHeight,int nWidth);
+void OtsuThreshold(unsigned char **RGB[3], int nHeight, int nWidth);
+void HistEqual(unsigned char **RGB[3], int nHeight, int nWidth);
+void AdativeThreshold(unsigned char **RGB[3], int nHeight, int nWidth);
 // 응용 프로그램 정보에 사용되는 CAboutDlg 대화 상자입니다.
 
 class CAboutDlg : public CDialogEx
@@ -217,17 +217,22 @@ void CImageProcessBaseDlg::OnDestroy()
 
 LRESULT CALLBACK CallbackOnFrame(HWND hWnd, LPVIDEOHDR lpVHdr)
 {
-
 	unsigned int uiBuflen = lpVHdr->dwBufferLength;
-	unsigned char RGB[485][645][3] = { 0, };
+	unsigned char ***RGB;
 	unsigned int nWidth, nHeight;
 	unsigned int i, j;
 	int Y0, U, Y1, V;
-	int maskSize;
+	int T;
 
 	nWidth = 640;
 	nHeight = 480;
 
+	RGB = (unsigned char ***)malloc(sizeof(unsigned char **) * (nHeight + 5));
+	for (i = 0; i < nHeight; i++)
+	{
+		RGB[i] = (unsigned char **)malloc(sizeof(unsigned char *)*(nWidth + 5));
+		for (j = 0; j < nWidth; j++) RGB[i][j] = (unsigned char *)malloc(sizeof(unsigned char) * 3);
+	}
 
 	// YUY2 ---> RGB
 	for (j = 0; j < nHeight; j++) { // height
@@ -247,123 +252,13 @@ LRESULT CALLBACK CallbackOnFrame(HWND hWnd, LPVIDEOHDR lpVHdr)
 	}
 
 
-	/////////////////////////////////////////////////////////////////////////////////
-	// otsu threshholding ///////////////////////////////////////////////////////////
-	/////////////////////////////////////////////////////////////////////////////////
-/*
-OTSU:
+//	OtsuThreshold(RGB, nHeight, nWidth);
 
-	for (j = 0; j < nHeight; j++) {
-		for (i = 0; i < nWidth; i++) {
-			gray[j][i] = (RGB[j][i][RED] + RGB[j][i][BLUE] + RGB[j][i][GREEN]) / 3; // grayscale
+//	HistEqual(RGB, nHeight, nWidth);
 
-		}
-	}
-
-	VarMax = -1;
-	for (T = 35; T < 185; T++)
-	{
-		darkCnt = brightCnt = darkAvg = brightAvg = 0;
-		for (j = 0; j < nHeight; j++)
-		{
-			for (i = 0; i < nWidth; i++)
-			{
-				if (gray[j][i] < T)
-				{
-					darkCnt++;
-					darkAvg += gray[j][i];
-				}
-				else
-				{
-					brightCnt++;
-					brightAvg += gray[j][i];
-				}
-
-			}
-		}
-		darkAvg = darkAvg / (double)(!darkCnt ? 1 : darkCnt);
-		brightAvg = brightAvg / (double)(!brightCnt ? 1 : brightCnt);
-		alpha = ((double)brightCnt / (double)(nHeight * nWidth)) * (double)100;
-		beta = ((double)darkCnt / (double)(nHeight * nWidth)) * (double)100;
-		if (VarMax < alpha*beta*pow(darkAvg - brightAvg, 2))
-		{
-			Tmax = T;
-			VarMax = alpha*beta*pow(darkAvg - brightAvg, 2);
-		}
-
-	}
-
-	for (j = 0; j < nHeight; j++) {
-		for (i = 0; i < nWidth; i++) {
-			if (gray[j][i] < Tmax) RGB[j][i][RED] = RGB[j][i][BLUE] = RGB[j][i][GREEN] = 0;
-			else  RGB[j][i][RED] = RGB[j][i][BLUE] = RGB[j][i][GREEN] = 255;
-
-		}
-	}
-
-*/
-	///////////////////////////////////////////////////////////////////////////////////////
-	// Intensity histogram/////////////////////////////////////////////////////////////////
-	///////////////////////////////////////////////////////////////////////////////////////
-	/*
-HISTOGRAM:
-	for (i = 0; i < 256; i++) histogram[i] = 0; //히스토그램 초기화
-	sum = 0;
-	for (j = 0; j < nHeight; j++) {
-		for (i = 0; i < nWidth; i++) {
-			gray[j][i] = (RGB[j][i][RED] + RGB[j][i][BLUE] + RGB[j][i][GREEN]) / 3;
-			histogram[gray[j][i]]++; // 히스토그램 생성
-		}
-	}
-
-	for (i = 0; i < 256; i++)
-	{
-		sum += histogram[i];
-		hist[i] = (int)( (double) sum * ( (double) 255 / (double) (nWidth*nHeight) ) + 0.5); // 누적합*((최대밝기/전체영상사이즈)+0.5[반올림])
-
-	}
+//	AdativeThreshold(RGB, nHeight, nWidth);
 	
-	for (i = 0; i < nHeight; i++)
-	{
-		for (j = 0; j < nWidth; j++)
-		{
-			gray[i][j] = hist[gray[i][j]];
-			RGB[i][j][RED] = RGB[i][j][BLUE] = RGB[i][j][GREEN] = gray[i][j];
-		}
 
-	}
-	*/
-	////////////////////////////////////////////////////////////////////////////////////////////////
-	// Localy adaptive thresholding ////////////////////////////////////////////////////////////////
-	////////////////////////////////////////////////////////////////////////////////////////////////
-ATHRESHOLD:
-	for (j = 0; j < nHeight; j++) {
-		for (i = 0; i < nWidth; i++) {
-			gray[j][i] = (RGB[j][i][RED] + RGB[j][i][BLUE] + RGB[j][i][GREEN]) / 3; // grayscale
-
-		}
-	}
-
-	for (i = 0; i <= nHeight; i++)
-	{
-		for (j = 0; j <= nWidth; j++)
-		{
-			maskSize = MASK*MASK;
-			sum = 0;
-			for (int m = -(MASK / 2); m <= MASK / 2; m++)
-			{
-				for (int n = -(MASK / 2); n <= MASK / 2; n++)
-				{
-					if (i + m > 0 && i + m < nHeight && j + n>0 && j + n < nWidth) sum += gray[i + m][j + n];
-					else maskSize--;
-				}
-			}
-			sum /= maskSize;
-			if (gray[i][j]>sum - 3) RGB[i][j][RED] = RGB[i][j][BLUE] = RGB[i][j][GREEN] = 255;
-			else RGB[i][j][RED] = RGB[i][j][BLUE] = RGB[i][j][GREEN] = 0;
-		}
-	}
-	//////////////////////////////////////////////////////////////////////////////////////////////////////////
 	// RGB ---> YUY2 
 
 	for (j = 0; j < nHeight; j++) { // height
@@ -381,8 +276,140 @@ ATHRESHOLD:
 
 		}
 	}
+	for (i = 0; i < nHeight; i++)
+	{
+		for (j = 0; j < nWidth; j++) free(RGB[i][j]);
+		free(RGB[i]);
+	}
+	free(RGB);
 	return (LRESULT)true;
 }
 
 
+void RGB2GRAY(unsigned char **RGB[3], int nHeight, int nWidth)
+{
+	unsigned int i, j;	
+	for (i = 0; i < 256; i++) histogram[i] = 0; //히스토그램 초기화
+	for (j = 0; j < nHeight; j++) {
+		for (i = 0; i < nWidth; i++) {
+			gray[j][i] = (RGB[j][i][RED] + RGB[j][i][BLUE] + RGB[j][i][GREEN]) / 3; // grayscale
+			histogram[gray[j][i]]++;
+			RGB[j][i][RED] = RGB[j][i][BLUE] = RGB[j][i][GREEN] = gray[j][i];
+		}
+	}
+	return;
+}
 
+
+void OtsuThreshold(unsigned char **RGB[3], int nHeight, int nWidth)
+{
+	unsigned int i, j;
+	int Tmax;
+	double VarMax;
+	double darkAvg = 0, brightAvg = 0;
+	int T = 5, darkCnt = 0, brightCnt = 0;
+	VarMax = -1;
+
+	RGB2GRAY(RGB, nHeight, nWidth);
+
+	for (T = 35; T < 185; T++)
+	{
+		darkCnt = brightCnt = darkAvg = brightAvg = 0;
+		for (j = 0; j < nHeight; j++)
+		{
+			for (i = 0; i < nWidth; i++)
+			{
+				if (gray[j][i] < T)
+				{
+					darkCnt++;
+					darkAvg += gray[j][i];
+				}
+				else
+				{
+					brightCnt++;
+					brightAvg += gray[j][i];
+				}
+			}
+		}
+		darkAvg = darkAvg / (double)(!darkCnt ? 1 : darkCnt);
+		brightAvg = brightAvg / (double)(!brightCnt ? 1 : brightCnt);
+		alpha = ((double)brightCnt / (double)(nHeight * nWidth)) * (double)100;
+		beta = ((double)darkCnt / (double)(nHeight * nWidth)) * (double)100;
+		if (VarMax < alpha*beta*pow(darkAvg - brightAvg, 2))
+		{
+			Tmax = T;
+			VarMax = alpha*beta*pow(darkAvg - brightAvg, 2);
+		}
+	}
+	for (j = 0; j < nHeight; j++) {
+		for (i = 0; i < nWidth; i++) {
+			if (gray[j][i] < Tmax) RGB[j][i][RED] = RGB[j][i][BLUE] = RGB[j][i][GREEN] = 0;
+			else  RGB[j][i][RED] = RGB[j][i][BLUE] = RGB[j][i][GREEN] = 255;
+		}
+	}
+	return;
+}
+
+
+void HistEqual(unsigned char **RGB[3], int nHeight, int nWidth)
+{
+	unsigned int i, j;
+	int sum;
+	int hist[256];
+	sum = 0;
+
+	RGB2GRAY(RGB, nHeight, nWidth);
+
+	for (i = 0; i < 256; i++)
+	{
+		sum += histogram[i];
+		hist[i] = (int)((double)sum * ((double)255 / (double)(nWidth*nHeight)) + 0.5); // 누적합*((최대밝기/전체영상사이즈)+0.5[반올림])
+	}
+
+	for (i = 0; i < nHeight; i++)
+	{
+		for (j = 0; j < nWidth; j++)
+		{
+			gray[i][j] = hist[gray[i][j]];
+			RGB[i][j][RED] = RGB[i][j][BLUE] = RGB[i][j][GREEN] = gray[i][j];
+		}
+	}
+	return;
+}
+
+void AdativeThreshold(unsigned char **RGB[3], int nHeight, int nWidth)
+{
+	unsigned int i, j;
+	int maskSize;
+	int sum;
+
+	RGB2GRAY(RGB, nHeight, nWidth);
+
+	for (j = 0; j < nHeight; j++) {
+		for (i = 0; i < nWidth; i++) {
+			gray[j][i] = (RGB[j][i][RED] + RGB[j][i][BLUE] + RGB[j][i][GREEN]) / 3; // grayscale
+
+		}
+	}
+
+	for (i = 0; i < nHeight; i++)
+	{
+		for (j = 0; j < nWidth; j++)
+		{
+			maskSize = MASK*MASK;
+			sum = 0;
+			for (int m = -(MASK / 2); m <= MASK / 2; m++)
+			{
+				for (int n = -(MASK / 2); n <= MASK / 2; n++)
+				{
+					if (i + m > 0 && i + m < nHeight && j + n>0 && j + n < nWidth) sum += gray[i + m][j + n];
+					else maskSize--;
+				}
+			}
+			sum /= maskSize;
+			if (gray[i][j] > sum - 3) RGB[i][j][RED] = RGB[i][j][BLUE] = RGB[i][j][GREEN] = 255;
+			else RGB[i][j][RED] = RGB[i][j][BLUE] = RGB[i][j][GREEN] = 0;
+		}
+	}
+	return;
+}
