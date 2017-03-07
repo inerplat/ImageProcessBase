@@ -94,6 +94,9 @@
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
+      <HeapReserveSize>
+      </HeapReserveSize>
+      <StackReserveSize>0xa00000</StackReserveSize>
     </Link>
     <Midl>
       <MkTypLibCompatible>false</MkTypLibCompatible>

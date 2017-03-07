@@ -14,7 +14,7 @@
 #define BLUE 2
 #define CLIP(x) (((x) <0)?0:(((x)>255)?255:(x)))
 
-#define MASK 51
+#define MASK 31
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
