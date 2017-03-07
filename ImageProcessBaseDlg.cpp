@@ -110,16 +110,18 @@ BOOL CImageProcessBaseDlg::OnInitDialog()
 	SetIcon(m_hIcon, TRUE);			// 큰 아이콘을 설정합니다.
 	SetIcon(m_hIcon, FALSE);		// 작은 아이콘을 설정합니다.
 
-	RECT m_Rect = { 0, 0, 640, 480 };     // 생성하고 싶은 사이즈를 RECT 변수에 초기화. 
+	RECT m_Rect = { 0, 0, 320, 240 };     // 생성하고 싶은 사이즈를 RECT 변수에 초기화. 
 
 	AdjustWindowRect(&m_Rect, WS_OVERLAPPEDWINDOW, FALSE);
 	int width = m_Rect.right - m_Rect.left;
 	int height = m_Rect.bottom - m_Rect.top;
+	width = 320;
+	height = 240;
 	this->SetWindowPos(NULL, 0, 0, width, height, SWP_NOSIZE);
 
 	// 윈도우 생성
 	m_Cap = capCreateCaptureWindow(TEXT("Image Test"), WS_CHILD
-		| WS_VISIBLE, 0, 0, 640, 480, this->m_hWnd, NULL);
+		| WS_VISIBLE, 0, 0, 320, 240, this->m_hWnd, NULL);
 
 	// 콜백함수 지정
 	if (capSetCallbackOnFrame(m_Cap, CallbackOnFrame) == FALSE) {
@@ -135,14 +137,25 @@ BOOL CImageProcessBaseDlg::OnInitDialog()
 	capOverlay(m_Cap, false);
 	capPreview(m_Cap, true);        // 미리보기 기능 설정
 
+	capGetVideoFormat(m_Cap, &BmInfo, sizeof(BITMAPINFO));
+	BmInfo.bmiHeader.biWidth /= 2;
+	BmInfo.bmiHeader.biHeight /= 2;
+	BmInfo.bmiHeader.biSizeImage = BmInfo.bmiHeader.biWidth * BmInfo.bmiHeader.biHeight * 3;
+	capSetVideoFormat(m_Cap, &BmInfo, sizeof(BITMAPINFO));
+
+
 	if (BmInfo.bmiHeader.biBitCount != 24) {
 
 		BmInfo.bmiHeader.biBitCount = 24;
 		BmInfo.bmiHeader.biCompression = 0;
 		BmInfo.bmiHeader.biSizeImage = BmInfo.bmiHeader.biWidth * BmInfo.bmiHeader.biHeight * 3;
-
-
 		capGetVideoFormat(m_Cap, &BmInfo, sizeof(BITMAPINFO));
+
+		BmInfo.bmiHeader.biWidth /= 2;
+		BmInfo.bmiHeader.biHeight /= 2;
+		BmInfo.bmiHeader.biSizeImage = BmInfo.bmiHeader.biWidth * BmInfo.bmiHeader.biHeight * 3;
+		capSetVideoFormat(m_Cap, &BmInfo, sizeof(BITMAPINFO));
+
 	}
 
 	return TRUE;  // 포커스를 컨트롤에 설정하지 않으면 TRUE를 반환합니다.
@@ -210,8 +223,60 @@ void CImageProcessBaseDlg::OnDestroy()
 
 LRESULT CALLBACK CallbackOnFrame(HWND hWnd, LPVIDEOHDR lpVHdr)
 {
-
 	unsigned int uiBuflen = lpVHdr->dwBufferLength;
+	unsigned char RGB[485][645][3] = { 0, };
+	unsigned char gray[485][645] = { 0, };
+	unsigned int sum[480][640] = { 0, };
+	unsigned int sum_2[480][640] = { 0, };
+	unsigned int nWidth, nHeight;
+	unsigned int i, j;
+	int Y0, U, Y1, V;
+
+	nWidth = 320;
+	nHeight = 240;
+
+	// YUY2 ---> RGB
+	for (j = 0; j < nHeight; j++) { // height
+		for (i = 0; i < nWidth; i += 2) { //width
+			Y0 = lpVHdr->lpData[(nWidth*j + i) * 2];
+			U = lpVHdr->lpData[(nWidth*j + i) * 2 + 1];
+			Y1 = lpVHdr->lpData[(nWidth*j + i) * 2 + 2];
+			V = lpVHdr->lpData[(nWidth*j + i) * 2 + 3];
+
+			RGB[j][i][RED] = (int)CLIP(Y0 + (1.4075*(V - 128)));
+			RGB[j][i][GREEN] = (int)CLIP(Y0 - 0.3455*(U - 128) - 0.7169*(V - 128));
+			RGB[j][i][BLUE] = (int)CLIP(Y0 + 1.7790*(U - 128));
+			RGB[j][i + 1][RED] = (int)CLIP(Y1 + (1.4075*(V - 128)));
+			RGB[j][i + 1][GREEN] = (int)CLIP(Y1 - 0.3455*(U - 128) - 0.7169*(V - 128));
+			RGB[j][i + 1][BLUE] = (int)CLIP(Y1 + 1.7790*(U - 128));
+		}
+	}
+
+	for (j = 0; j < nHeight; j++)
+		for (i = 0; i < nWidth; i++)
+		{
+			gray[j][i] = (RGB[j][i][RED] + RGB[j][i][GREEN] + RGB[j][i][BLUE]) / 3;
+			RGB[j][i][RED] = RGB[j][i][GREEN] = RGB[j][i][BLUE] = gray[j][i];
+		}
+
+	// RGB ---> YUY2 
+	for (j = 0; j < nHeight; j++) { // height
+	for (i = 0; i < nWidth; i += 2) { //width
+
+	Y0 = (int)CLIP(0.2999*RGB[j][i][RED] + 0.587*RGB[j][i][GREEN] + 0.114*RGB[j][i][BLUE]);
+	Y1 = (int)CLIP(0.2999*RGB[j][i + 1][RED] + 0.587*RGB[j][i + 1][GREEN] + 0.114*RGB[j][i + 1][BLUE]);
+	U = (int)CLIP(-0.1687*RGB[j][i][RED] - 0.3313*RGB[j][i][GREEN] + 0.5*RGB[j][i][BLUE] + 128.0);
+	V = (int)CLIP(0.5*RGB[j][i][RED] - 0.4187*RGB[j][i][GREEN] - 0.0813*RGB[j][i][BLUE] + 128.0);
+
+	lpVHdr->lpData[(nWidth*j + i) * 2] = Y0;
+	lpVHdr->lpData[(nWidth*j + i) * 2 + 1] = U;
+	lpVHdr->lpData[(nWidth*j + i) * 2 + 2] = Y1;
+	lpVHdr->lpData[(nWidth*j + i) * 2 + 3] = V;
+
+	}
+	}
+
+	/*unsigned int uiBuflen = lpVHdr->dwBufferLength;
 	unsigned char RGB[485][645][3] = { 0, };
 	unsigned char gray[485][645] = { 0, };
 	unsigned int sum[480][640] = { 0, };
@@ -240,11 +305,11 @@ LRESULT CALLBACK CallbackOnFrame(HWND hWnd, LPVIDEOHDR lpVHdr)
 			RGB[j][i + 1][BLUE] = (int)CLIP(Y1 + 1.7790*(U - 128));
 		}
 	}
-
+	*/
 	/////////////////////////////////////////////////////////////////////////////////
 	// RGB영상처리부분
 	// 지역가변이진화
-	for (j = 0; j < nHeight; j++)
+	/*for (j = 0; j < nHeight; j++)
 		for (i = 0; i < nWidth; i++)
 			gray[j][i] = (RGB[j][i][RED] + RGB[j][i][GREEN] + RGB[j][i][BLUE]) / 3;
 
@@ -305,11 +370,10 @@ LRESULT CALLBACK CallbackOnFrame(HWND hWnd, LPVIDEOHDR lpVHdr)
 			else RGB[j][i][RED] = RGB[j][i][GREEN] = RGB[j][i][BLUE] = 0;
 		}
 	}
-
+	*/
 	//////////////////////////////////////////////////////////////////////////////////
-
 	// RGB ---> YUY2 
-
+/*
 	for (j = 0; j < nHeight; j++) { // height
 		for (i = 0; i < nWidth; i += 2) { //width
 
@@ -324,6 +388,6 @@ LRESULT CALLBACK CallbackOnFrame(HWND hWnd, LPVIDEOHDR lpVHdr)
 			lpVHdr->lpData[(nWidth*j + i) * 2 + 3] = V;
 
 		}
-	}
+	}*/
 	return (LRESULT)true;
 }
