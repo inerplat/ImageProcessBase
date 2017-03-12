@@ -1,8 +1,6 @@
 # KAIST - SoC RobotWar
 ## 출전자격 TEST 대비 영상기초
 
----
-
 ## 설명1
 
 1. 영상은 기본적으로 배열이나 포인터를 이용해서 저장합니다.
@@ -85,34 +83,7 @@ OpenCV에서 adaptiveThreshold라는 이름으로 제공하는 함수에서는 �
 #### 예시
 
 <div>
-<style type="text/css">
-.tg  {border-collapse:collapse;border-spacing:0;}
-.tg td{font-family:Arial, sans-serif;font-size:14px;padding:10px 5px;border-style:solid;border-width:1px;overflow:hidden;word-break:normal;}
-.tg th{font-family:Arial, sans-serif;font-size:14px;font-weight:normal;padding:10px 5px;border-style:solid;border-width:1px;overflow:hidden;word-break:normal;}
-.tg .tg-hgcj{font-weight:bold;text-align:center}
-</style>
-<table class="tg">
-  <tr>
-    <th class="tg-hgcj">    3    </th>
-    <th class="tg-hgcj">    4    </th>
-    <th class="tg-hgcj">    6    </th>
-  </tr>
-  <tr>
-    <td class="tg-hgcj">7</td>
-    <td class="tg-hgcj">6</td>
-    <td class="tg-hgcj">5</td>
-  </tr>
-  <tr>
-    <td class="tg-hgcj">8</td>
-    <td class="tg-hgcj">7</td>
-    <td class="tg-hgcj">6</td>
-  </tr>
-  <tr>
-    <td class="tg-hgcj">3</td>
-    <td class="tg-hgcj">1</td>
-    <td class="tg-hgcj">5</td>
-  </tr>
-</table>
+<table style="border-collapse:collapse;border-spacing:0"><tr><th style="font-family:Arial, Helvetica, sans-serif !important;;font-size:14px;font-weight:normal;padding:10px 5px;border-style:solid;border-width:1px;overflow:hidden;word-break:normal;text-align:center">3</th><th style="font-family:Arial, Helvetica, sans-serif !important;;font-size:14px;font-weight:normal;padding:10px 5px;border-style:solid;border-width:1px;overflow:hidden;word-break:normal;text-align:center;vertical-align:top">4</th><th style="font-family:Arial, Helvetica, sans-serif !important;;font-size:14px;font-weight:normal;padding:10px 5px;border-style:solid;border-width:1px;overflow:hidden;word-break:normal;text-align:center;vertical-align:top">6</th></tr><tr><td style="font-family:Arial, Helvetica, sans-serif !important;;font-size:14px;padding:10px 5px;border-style:solid;border-width:1px;overflow:hidden;word-break:normal;text-align:center">7</td><td style="font-family:Arial, Helvetica, sans-serif !important;;font-size:14px;padding:10px 5px;border-style:solid;border-width:1px;overflow:hidden;word-break:normal;text-align:center;vertical-align:top">6</td><td style="font-family:Arial, Helvetica, sans-serif !important;;font-size:14px;padding:10px 5px;border-style:solid;border-width:1px;overflow:hidden;word-break:normal;text-align:center;vertical-align:top">5</td></tr><tr><td style="font-family:Arial, Helvetica, sans-serif !important;;font-size:14px;padding:10px 5px;border-style:solid;border-width:1px;overflow:hidden;word-break:normal;text-align:center">8</td><td style="font-family:Arial, Helvetica, sans-serif !important;;font-size:14px;padding:10px 5px;border-style:solid;border-width:1px;overflow:hidden;word-break:normal;text-align:center;vertical-align:top">7</td><td style="font-family:Arial, Helvetica, sans-serif !important;;font-size:14px;padding:10px 5px;border-style:solid;border-width:1px;overflow:hidden;word-break:normal;text-align:center;vertical-align:top">6</td></tr><tr><td style="font-family:Arial, Helvetica, sans-serif !important;;font-size:14px;padding:10px 5px;border-style:solid;border-width:1px;overflow:hidden;word-break:normal;text-align:center">3</td><td style="font-family:Arial, Helvetica, sans-serif !important;;font-size:14px;padding:10px 5px;border-style:solid;border-width:1px;overflow:hidden;word-break:normal;text-align:center;vertical-align:top">1</td><td style="font-family:Arial, Helvetica, sans-serif !important;;font-size:14px;padding:10px 5px;border-style:solid;border-width:1px;overflow:hidden;word-break:normal;text-align:center;vertical-align:top">5</td></tr></table>
 </div>
 다음과 같은 명암을 가진 영상데이터가 있다고 가정할때 명암값에 대한 빈도수와 그의 누적합을 구합니다.
 평활화를 위한 정규화 식은 (각각의 누적합) / <span style="color:blue;">(전체 픽셀 수)</span> * <span style="color:red;">(최대명암값)</span> 이며 예시로 주어진 영상데이터의 빈도수, 누적합, 정규화 값은 다음과 같습니다
@@ -143,6 +114,7 @@ OpenCV에서 adaptiveThreshold라는 이름으로 제공하는 함수에서는 �
 <table style="border-collapse:collapse;border-spacing:0">
 <tr><th style="font-family:Arial, sans-serif;font-size:14px;font-weight:normal;padding:10px 5px;border-style:solid;border-width:1px;overflow:hidden;word-break:normal;text-align:center">2</th><th style="font-family:Arial, sans-serif;font-size:14px;font-weight:normal;padding:10px 5px;border-style:solid;border-width:1px;overflow:hidden;word-break:normal;text-align:center;vertical-align:top">2.67 </th><th style="font-family:Arial, sans-serif;font-size:14px;font-weight:normal;padding:10px 5px;border-style:solid;border-width:1px;overflow:hidden;word-break:normal;text-align:center;vertical-align:top">6</th></tr><tr><td style="font-family:Arial, sans-serif;font-size:14px;padding:10px 5px;border-style:solid;border-width:1px;overflow:hidden;word-break:normal;text-align:center">7.33</td><td style="font-family:Arial, sans-serif;font-size:14px;padding:10px 5px;border-style:solid;border-width:1px;overflow:hidden;word-break:normal;text-align:center;vertical-align:top">6</td><td style="font-family:Arial, sans-serif;font-size:14px;padding:10px 5px;border-style:solid;border-width:1px;overflow:hidden;word-break:normal;text-align:center;vertical-align:top">4</td></tr><tr><td style="font-family:Arial, sans-serif;font-size:14px;padding:10px 5px;border-style:solid;border-width:1px;overflow:hidden;word-break:normal;text-align:center">8</td><td style="font-family:Arial, sans-serif;font-size:14px;padding:10px 5px;border-style:solid;border-width:1px;overflow:hidden;word-break:normal;text-align:center;vertical-align:top">7.33</td><td style="font-family:Arial, sans-serif;font-size:14px;padding:10px 5px;border-style:solid;border-width:1px;overflow:hidden;word-break:normal;text-align:center;vertical-align:top">6</td></tr><tr><td style="font-family:Arial, sans-serif;font-size:14px;padding:10px 5px;border-style:solid;border-width:1px;overflow:hidden;word-break:normal;text-align:center">2</td><td style="font-family:Arial, sans-serif;font-size:14px;padding:10px 5px;border-style:solid;border-width:1px;overflow:hidden;word-break:normal;text-align:center;vertical-align:top">0.67</td><td style="font-family:Arial, sans-serif;font-size:14px;padding:10px 5px;border-style:solid;border-width:1px;overflow:hidden;word-break:normal;text-align:center;vertical-align:top">4</td></tr></table>
 
+---
 
 ## 과제3
 1. 영상 데이터의 히스토그램을 작성하고 히스토그램을 이용한 평활화를 적용하시오
