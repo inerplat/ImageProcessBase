@@ -70,3 +70,79 @@ OpenCV에서 adaptiveThreshold라는 이름으로 제공하는 함수에서는 �
 >Hint : 반복문을 이용하여 T를 0부터 255까지 검사하며 (1)을 최소 혹은 (2)를 최대를 만족하게 만드는 T값을 검출하고 이 값을 이용하여 이진화를 진행하면 됩니다.
 
 2. 한 픽셀을 중심으로 N*N영역의 밝기평균을 이용한 지역가변이진화를 구현하시오(상수 C의 값은 본인이 원하는대로 사용하여도 무관함)
+
+---
+
+## 설명 3
+자연조명과 인공조명은 영상을 처리하는데에 있어서 중요하게 고려해야할 요소입니다. 원하지 않는 조명이 포함되거나 약한 조명의 세기로 인해 영상을 구별하는데 문제가 발생하기 때문입니다. 
+이미지의 모든 픽셀에 대한 명암(밝기)의 분포를 나타낸 값인 히스토그램은 이와 같은 상황에서 간단하면서도 유용하게 사용할 수 있는 도구입니다. 영상의 히스토그램을 분석하면 한쪽으로 치우쳐진 명도를 고르게 분포시키는 평활화 작업을 할 수 있습니다.
+
+히스토그램을 이용해 명암값을 정규화하는 과정은 다음과 같습니다
+1. 명암값의 빈도수에 대해 누적합을 계산합니다.
+2. 각각의 누적합에 Scale Factor(최대명암값/전체 픽셀 수)를 곱합니다.
+3. 명암값을 (2)에서 구한 값으로 대체합니다.
+
+#### 예시
+
+<div>
+<style type="text/css">
+.tg  {border-collapse:collapse;border-spacing:0;}
+.tg td{font-family:Arial, sans-serif;font-size:14px;padding:10px 5px;border-style:solid;border-width:1px;overflow:hidden;word-break:normal;}
+.tg th{font-family:Arial, sans-serif;font-size:14px;font-weight:normal;padding:10px 5px;border-style:solid;border-width:1px;overflow:hidden;word-break:normal;}
+.tg .tg-hgcj{font-weight:bold;text-align:center}
+</style>
+<table class="tg">
+  <tr>
+    <th class="tg-hgcj">    3    </th>
+    <th class="tg-hgcj">    4    </th>
+    <th class="tg-hgcj">    6    </th>
+  </tr>
+  <tr>
+    <td class="tg-hgcj">7</td>
+    <td class="tg-hgcj">6</td>
+    <td class="tg-hgcj">5</td>
+  </tr>
+  <tr>
+    <td class="tg-hgcj">8</td>
+    <td class="tg-hgcj">7</td>
+    <td class="tg-hgcj">6</td>
+  </tr>
+  <tr>
+    <td class="tg-hgcj">3</td>
+    <td class="tg-hgcj">1</td>
+    <td class="tg-hgcj">5</td>
+  </tr>
+</table>
+</div>
+다음과 같은 명암을 가진 영상데이터가 있다고 가정할때 명암값에 대한 빈도수와 그의 누적합을 구합니다.
+평활화를 위한 정규화 식은 (각각의 누적합) / <span style="color:blue;">(전체 픽셀 수)</span> * <span style="color:red;">(최대명암값)</span> 이며 예시로 주어진 영상데이터의 빈도수, 누적합, 정규화 값은 다음과 같습니다
+
+<div style= "overflow:hidden;">
+<div style=" float:left; margin:auto;">
+<table style="border-collapse:collapse;border-spacing:0"><tr><th style="font-family:Arial, Helvetica, sans-serif !important;;font-size:14px;font-weight:bold;padding:10px 5px;border-style:solid;border-width:1px;overflow:hidden;word-break:normal;background-color:#c0c0c0;text-align:center">명도</th><th style="font-family:Arial, Helvetica, sans-serif !important;;font-size:14px;font-weight:bold;padding:10px 5px;border-style:solid;border-width:1px;overflow:hidden;word-break:normal;background-color:#c0c0c0;text-align:center">빈도수</th><th style="font-family:Arial, sans-serif;font-size:14px;font-weight:bold;padding:10px 5px;border-style:solid;border-width:1px;overflow:hidden;word-break:normal;background-color:#c0c0c0;text-align:center;vertical-align:top">누적합</th></tr><tr><td style="font-family:Arial, Helvetica, sans-serif !important;;font-size:14px;padding:10px 5px;border-style:solid;border-width:1px;overflow:hidden;word-break:normal;text-align:center">1</td><td style="font-family:Arial, Helvetica, sans-serif !important;;font-size:14px;padding:10px 5px;border-style:solid;border-width:1px;overflow:hidden;word-break:normal;text-align:center">1</td><td style="font-family:Arial, sans-serif;font-size:14px;padding:10px 5px;border-style:solid;border-width:1px;overflow:hidden;word-break:normal;text-align:center;vertical-align:top">1</td></tr><tr><td style="font-family:Arial, Helvetica, sans-serif !important;;font-size:14px;padding:10px 5px;border-style:solid;border-width:1px;overflow:hidden;word-break:normal;text-align:center">2</td><td style="font-family:Arial, Helvetica, sans-serif !important;;font-size:14px;padding:10px 5px;border-style:solid;border-width:1px;overflow:hidden;word-break:normal;text-align:center">0</td><td style="font-family:Arial, sans-serif;font-size:14px;padding:10px 5px;border-style:solid;border-width:1px;overflow:hidden;word-break:normal;text-align:center;vertical-align:top">1</td></tr><tr><td style="font-family:Arial, Helvetica, sans-serif !important;;font-size:14px;padding:10px 5px;border-style:solid;border-width:1px;overflow:hidden;word-break:normal;text-align:center">3</td><td style="font-family:Arial, Helvetica, sans-serif !important;;font-size:14px;padding:10px 5px;border-style:solid;border-width:1px;overflow:hidden;word-break:normal;text-align:center">2</td><td style="font-family:Arial, sans-serif;font-size:14px;padding:10px 5px;border-style:solid;border-width:1px;overflow:hidden;word-break:normal;text-align:center;vertical-align:top">3</td></tr><tr><td style="font-family:Arial, Helvetica, sans-serif !important;;font-size:14px;padding:10px 5px;border-style:solid;border-width:1px;overflow:hidden;word-break:normal;text-align:center;vertical-align:top">4</td><td style="font-family:Arial, Helvetica, sans-serif !important;;font-size:14px;padding:10px 5px;border-style:solid;border-width:1px;overflow:hidden;word-break:normal;text-align:center;vertical-align:top">1</td><td style="font-family:Arial, sans-serif;font-size:14px;padding:10px 5px;border-style:solid;border-width:1px;overflow:hidden;word-break:normal;text-align:center;vertical-align:top">4</td></tr><tr><td style="font-family:Arial, Helvetica, sans-serif !important;;font-size:14px;padding:10px 5px;border-style:solid;border-width:1px;overflow:hidden;word-break:normal;text-align:center;vertical-align:top">5</td><td style="font-family:Arial, Helvetica, sans-serif !important;;font-size:14px;padding:10px 5px;border-style:solid;border-width:1px;overflow:hidden;word-break:normal;text-align:center;vertical-align:top">2</td><td style="font-family:Arial, sans-serif;font-size:14px;padding:10px 5px;border-style:solid;border-width:1px;overflow:hidden;word-break:normal;text-align:center;vertical-align:top">6</td></tr><tr><td style="font-family:Arial, Helvetica, sans-serif !important;;font-size:14px;padding:10px 5px;border-style:solid;border-width:1px;overflow:hidden;word-break:normal;text-align:center;vertical-align:top">6</td><td style="font-family:Arial, Helvetica, sans-serif !important;;font-size:14px;padding:10px 5px;border-style:solid;border-width:1px;overflow:hidden;word-break:normal;text-align:center;vertical-align:top">3</td><td style="font-family:Arial, sans-serif;font-size:14px;padding:10px 5px;border-style:solid;border-width:1px;overflow:hidden;word-break:normal;text-align:center;vertical-align:top">9</td></tr><tr><td style="font-family:Arial, Helvetica, sans-serif !important;;font-size:14px;padding:10px 5px;border-style:solid;border-width:1px;overflow:hidden;word-break:normal;text-align:center;vertical-align:top">7</td><td style="font-family:Arial, Helvetica, sans-serif !important;;font-size:14px;padding:10px 5px;border-style:solid;border-width:1px;overflow:hidden;word-break:normal;text-align:center;vertical-align:top">2</td><td style="font-family:Arial, sans-serif;font-size:14px;padding:10px 5px;border-style:solid;border-width:1px;overflow:hidden;word-break:normal;text-align:center;vertical-align:top">11</td></tr><tr><td style="font-family:Arial, Helvetica, sans-serif !important;;font-size:14px;padding:10px 5px;border-style:solid;border-width:1px;overflow:hidden;word-break:normal;font-weight:bold;color:#fe0000;text-align:center;vertical-align:top">8</td><td style="font-family:Arial, Helvetica, sans-serif !important;;font-size:14px;padding:10px 5px;border-style:solid;border-width:1px;overflow:hidden;word-break:normal;text-align:center;vertical-align:top">1</td><td style="font-family:Arial, sans-serif;font-size:14px;padding:10px 5px;border-style:solid;border-width:1px;overflow:hidden;word-break:normal;font-weight:bold;color:#3531ff;text-align:center;vertical-align:top">12</td></tr></table>
+</div>
+
+<div style="float:left;margin-left:3em;">
+<p></p>
+</div>
+
+<div style="margin:auto;padding:auto;float:left">
+<table style="border-collapse:collapse;border-spacing:0"><tr><th style="font-family:Arial, Helvetica, sans-serif !important;;font-size:14px;font-weight:bold;padding:10px 5px;border-style:solid;border-width:1px;overflow:hidden;word-break:normal;background-color:#c0c0c0;text-align:center">정규화</th></tr><tr><td style="font-family:Arial, Helvetica, sans-serif !important;;font-size:14px;padding:10px 5px;border-style:solid;border-width:1px;overflow:hidden;word-break:normal;text-align:center">0.66667</td></tr><tr><td style="font-family:Arial, Helvetica, sans-serif !important;;font-size:14px;padding:10px 5px;border-style:solid;border-width:1px;overflow:hidden;word-break:normal;text-align:center">0.66667</td></tr><tr><td style="font-family:Arial, Helvetica, sans-serif !important;;font-size:14px;padding:10px 5px;border-style:solid;border-width:1px;overflow:hidden;word-break:normal;text-align:center">2</td></tr><tr><td style="font-family:Arial, Helvetica, sans-serif !important;;font-size:14px;padding:10px 5px;border-style:solid;border-width:1px;overflow:hidden;word-break:normal;text-align:center">2.66667</td></tr><tr><td style="font-family:Arial, Helvetica, sans-serif !important;;font-size:14px;padding:10px 5px;border-style:solid;border-width:1px;overflow:hidden;word-break:normal;text-align:center">4</td></tr><tr><td style="font-family:Arial, Helvetica, sans-serif !important;;font-size:14px;padding:10px 5px;border-style:solid;border-width:1px;overflow:hidden;word-break:normal;text-align:center">6</td></tr><tr><td style="font-family:Arial, Helvetica, sans-serif !important;;font-size:14px;padding:10px 5px;border-style:solid;border-width:1px;overflow:hidden;word-break:normal;text-align:center">7.33333</td></tr><tr><td style="font-family:Arial, Helvetica, sans-serif !important;;font-size:14px;padding:10px 5px;border-style:solid;border-width:1px;overflow:hidden;word-break:normal;text-align:center">8</td></tr></table>
+</div>
+
+<div style="float:left;margin-left:3em;">
+<p></p>
+</div>
+</div>
+
+변환 전
+<table style="border-collapse:collapse;border-spacing:0"><tr><th style="font-family:Arial, Helvetica, sans-serif !important;;font-size:14px;font-weight:normal;padding:10px 5px;border-style:solid;border-width:1px;overflow:hidden;word-break:normal;text-align:center">3</th><th style="font-family:Arial, Helvetica, sans-serif !important;;font-size:14px;font-weight:normal;padding:10px 5px;border-style:solid;border-width:1px;overflow:hidden;word-break:normal;text-align:center;vertical-align:top">4</th><th style="font-family:Arial, Helvetica, sans-serif !important;;font-size:14px;font-weight:normal;padding:10px 5px;border-style:solid;border-width:1px;overflow:hidden;word-break:normal;text-align:center;vertical-align:top">6</th></tr><tr><td style="font-family:Arial, Helvetica, sans-serif !important;;font-size:14px;padding:10px 5px;border-style:solid;border-width:1px;overflow:hidden;word-break:normal;text-align:center">7</td><td style="font-family:Arial, Helvetica, sans-serif !important;;font-size:14px;padding:10px 5px;border-style:solid;border-width:1px;overflow:hidden;word-break:normal;text-align:center;vertical-align:top">6</td><td style="font-family:Arial, Helvetica, sans-serif !important;;font-size:14px;padding:10px 5px;border-style:solid;border-width:1px;overflow:hidden;word-break:normal;text-align:center;vertical-align:top">5</td></tr><tr><td style="font-family:Arial, Helvetica, sans-serif !important;;font-size:14px;padding:10px 5px;border-style:solid;border-width:1px;overflow:hidden;word-break:normal;text-align:center">8</td><td style="font-family:Arial, Helvetica, sans-serif !important;;font-size:14px;padding:10px 5px;border-style:solid;border-width:1px;overflow:hidden;word-break:normal;text-align:center;vertical-align:top">7</td><td style="font-family:Arial, Helvetica, sans-serif !important;;font-size:14px;padding:10px 5px;border-style:solid;border-width:1px;overflow:hidden;word-break:normal;text-align:center;vertical-align:top">6</td></tr><tr><td style="font-family:Arial, Helvetica, sans-serif !important;;font-size:14px;padding:10px 5px;border-style:solid;border-width:1px;overflow:hidden;word-break:normal;text-align:center">3</td><td style="font-family:Arial, Helvetica, sans-serif !important;;font-size:14px;padding:10px 5px;border-style:solid;border-width:1px;overflow:hidden;word-break:normal;text-align:center;vertical-align:top">1</td><td style="font-family:Arial, Helvetica, sans-serif !important;;font-size:14px;padding:10px 5px;border-style:solid;border-width:1px;overflow:hidden;word-break:normal;text-align:center;vertical-align:top">5</td></tr></table>
+
+
+변환 후
+<table style="border-collapse:collapse;border-spacing:0">
+<tr><th style="font-family:Arial, sans-serif;font-size:14px;font-weight:normal;padding:10px 5px;border-style:solid;border-width:1px;overflow:hidden;word-break:normal;text-align:center">2</th><th style="font-family:Arial, sans-serif;font-size:14px;font-weight:normal;padding:10px 5px;border-style:solid;border-width:1px;overflow:hidden;word-break:normal;text-align:center;vertical-align:top">2.67 </th><th style="font-family:Arial, sans-serif;font-size:14px;font-weight:normal;padding:10px 5px;border-style:solid;border-width:1px;overflow:hidden;word-break:normal;text-align:center;vertical-align:top">6</th></tr><tr><td style="font-family:Arial, sans-serif;font-size:14px;padding:10px 5px;border-style:solid;border-width:1px;overflow:hidden;word-break:normal;text-align:center">7.33</td><td style="font-family:Arial, sans-serif;font-size:14px;padding:10px 5px;border-style:solid;border-width:1px;overflow:hidden;word-break:normal;text-align:center;vertical-align:top">6</td><td style="font-family:Arial, sans-serif;font-size:14px;padding:10px 5px;border-style:solid;border-width:1px;overflow:hidden;word-break:normal;text-align:center;vertical-align:top">4</td></tr><tr><td style="font-family:Arial, sans-serif;font-size:14px;padding:10px 5px;border-style:solid;border-width:1px;overflow:hidden;word-break:normal;text-align:center">8</td><td style="font-family:Arial, sans-serif;font-size:14px;padding:10px 5px;border-style:solid;border-width:1px;overflow:hidden;word-break:normal;text-align:center;vertical-align:top">7.33</td><td style="font-family:Arial, sans-serif;font-size:14px;padding:10px 5px;border-style:solid;border-width:1px;overflow:hidden;word-break:normal;text-align:center;vertical-align:top">6</td></tr><tr><td style="font-family:Arial, sans-serif;font-size:14px;padding:10px 5px;border-style:solid;border-width:1px;overflow:hidden;word-break:normal;text-align:center">2</td><td style="font-family:Arial, sans-serif;font-size:14px;padding:10px 5px;border-style:solid;border-width:1px;overflow:hidden;word-break:normal;text-align:center;vertical-align:top">0.67</td><td style="font-family:Arial, sans-serif;font-size:14px;padding:10px 5px;border-style:solid;border-width:1px;overflow:hidden;word-break:normal;text-align:center;vertical-align:top">4</td></tr></table>
+
+
+## 과제3
+1. 영상 데이터의 히스토그램을 작성하고 히스토그램을 이용한 평활화를 적용하시오
