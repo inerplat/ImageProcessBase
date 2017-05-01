@@ -27,7 +27,7 @@ unsigned char gray[485][645] = { 0 };
 double alpha, beta;
 
 
-void RGB2GRAY(unsigned char **RGB[3],int nHeight,int nWidth);
+void RGB2GRAY(unsigned char **RGB[3], int nHeight, int nWidth);
 void OtsuThreshold(unsigned char **RGB[3], int nHeight, int nWidth);
 void HistEqual(unsigned char **RGB[3], int nHeight, int nWidth);
 void AdativeThreshold(unsigned char **RGB[3], int nHeight, int nWidth);
@@ -141,16 +141,19 @@ BOOL CImageProcessBaseDlg::OnInitDialog()
 	capPreviewRate(m_Cap, 33);    // 초당 프레임 지정
 	capOverlay(m_Cap, false);
 	capPreview(m_Cap, true);        // 미리보기 기능 설정
+	capGetVideoFormat(m_Cap, &BmInfo, sizeof(BITMAPINFO));
+	//BmInfo.bmiHeader.biWidth = 320;
+	//BmInfo.bmiHeader.biHeight = 240;
 
+	BmInfo.bmiHeader.biSizeImage = BmInfo.bmiHeader.biWidth * BmInfo.bmiHeader.biHeight * 3;
+	capSetVideoFormat(m_Cap, &BmInfo, sizeof(BITMAPINFO));
 	if (BmInfo.bmiHeader.biBitCount != 24) {
 
 		BmInfo.bmiHeader.biBitCount = 24;
 		BmInfo.bmiHeader.biCompression = 0;
-		BmInfo.bmiHeader.biSizeImage = BmInfo.bmiHeader.biWidth * BmInfo.bmiHeader.biHeight * 3;
 
-
-		capGetVideoFormat(m_Cap, &BmInfo, sizeof(BITMAPINFO));
 	}
+	capSetVideoFormat(m_Cap, &BmInfo, sizeof(BITMAPINFO));
 
 	return TRUE;  // 포커스를 컨트롤에 설정하지 않으면 TRUE를 반환합니다.
 }
@@ -252,12 +255,12 @@ LRESULT CALLBACK CallbackOnFrame(HWND hWnd, LPVIDEOHDR lpVHdr)
 	}
 
 
-//	OtsuThreshold(RGB, nHeight, nWidth);
+	//	OtsuThreshold(RGB, nHeight, nWidth);
 
-//	HistEqual(RGB, nHeight, nWidth);
+	//	HistEqual(RGB, nHeight, nWidth);
 
-//	AdativeThreshold(RGB, nHeight, nWidth);
-	
+		AdativeThreshold(RGB, nHeight, nWidth);
+
 
 	// RGB ---> YUY2 
 
@@ -288,7 +291,7 @@ LRESULT CALLBACK CallbackOnFrame(HWND hWnd, LPVIDEOHDR lpVHdr)
 
 void RGB2GRAY(unsigned char **RGB[3], int nHeight, int nWidth)
 {
-	unsigned int i, j;	
+	unsigned int i, j;
 	for (i = 0; i < 256; i++) histogram[i] = 0; //히스토그램 초기화
 	for (j = 0; j < nHeight; j++) {
 		for (i = 0; i < nWidth; i++) {
