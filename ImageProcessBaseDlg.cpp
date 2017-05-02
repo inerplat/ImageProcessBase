@@ -31,6 +31,7 @@ void RGB2GRAY(unsigned char **RGB[3], int nHeight, int nWidth);
 void OtsuThreshold(unsigned char **RGB[3], int nHeight, int nWidth);
 void HistEqual(unsigned char **RGB[3], int nHeight, int nWidth);
 void AdativeThreshold(unsigned char **RGB[3], int nHeight, int nWidth);
+void SaltPepper(unsigned char **RGB[3], int nHeight, int nWidth);
 // 응용 프로그램 정보에 사용되는 CAboutDlg 대화 상자입니다.
 
 class CAboutDlg : public CDialogEx
@@ -236,7 +237,7 @@ LRESULT CALLBACK CallbackOnFrame(HWND hWnd, LPVIDEOHDR lpVHdr)
 		RGB[i] = (unsigned char **)malloc(sizeof(unsigned char *)*(nWidth + 5));
 		for (j = 0; j < nWidth; j++) RGB[i][j] = (unsigned char *)malloc(sizeof(unsigned char) * 3);
 	}
-
+	/*
 	// YUY2 ---> RGB
 	for (j = 0; j < nHeight; j++) { // height
 		for (i = 0; i < nWidth; i += 2) { //width
@@ -253,17 +254,35 @@ LRESULT CALLBACK CallbackOnFrame(HWND hWnd, LPVIDEOHDR lpVHdr)
 			RGB[j][i + 1][BLUE] = (int)CLIP(Y1 + 1.7790*(U - 128));
 		}
 	}
+	*/
+	for (i = 0; i < nHeight; i++)
+	{
+		for (j = 0; j < nWidth; j++)
+		{
+			RGB[i][j][BLUE] = lpVHdr->lpData[(nWidth*i + j) * 3];
+			RGB[i][j][GREEN] = lpVHdr->lpData[(nWidth*i + j) * 3 + 1];
+			RGB[i][j][RED] = lpVHdr->lpData[(nWidth*i + j) * 3 + 2];
+		}
+	}
+	//OtsuThreshold(RGB, nHeight, nWidth);
 
+	//HistEqual(RGB, nHeight, nWidth);
 
-	//	OtsuThreshold(RGB, nHeight, nWidth);
+	AdativeThreshold(RGB, nHeight, nWidth);
+	SaltPepper(RGB, nHeight, nWidth);
 
-	//	HistEqual(RGB, nHeight, nWidth);
+	for (i = 0; i < nHeight; i++)
+	{
+		for (j = 0; j < nWidth; j++)
+		{
 
-		AdativeThreshold(RGB, nHeight, nWidth);
-
-
+			lpVHdr->lpData[(nWidth*i + j) * 3] = RGB[i][j][BLUE];
+			lpVHdr->lpData[(nWidth*i + j) * 3 + 1] = RGB[i][j][GREEN];
+			lpVHdr->lpData[(nWidth*i + j) * 3 + 2] = RGB[i][j][RED];
+		}
+	}
 	// RGB ---> YUY2 
-
+/*
 	for (j = 0; j < nHeight; j++) { // height
 		for (i = 0; i < nWidth; i += 2) { //width
 
@@ -279,6 +298,7 @@ LRESULT CALLBACK CallbackOnFrame(HWND hWnd, LPVIDEOHDR lpVHdr)
 
 		}
 	}
+	*/
 	for (i = 0; i < nHeight; i++)
 	{
 		for (j = 0; j < nWidth; j++) free(RGB[i][j]);
@@ -410,8 +430,32 @@ void AdativeThreshold(unsigned char **RGB[3], int nHeight, int nWidth)
 				}
 			}
 			sum /= maskSize;
-			if (gray[i][j] > sum - 3) RGB[i][j][RED] = RGB[i][j][BLUE] = RGB[i][j][GREEN] = 255;
+			if (gray[i][j] > sum - 4) RGB[i][j][RED] = RGB[i][j][BLUE] = RGB[i][j][GREEN] = 255;
 			else RGB[i][j][RED] = RGB[i][j][BLUE] = RGB[i][j][GREEN] = 0;
+		}
+	}
+	return;
+}
+void SaltPepper(unsigned char **RGB[3], int nHeight, int nWidth)
+{
+	int i, j;
+	int masksize = 3;
+	for (i = 0; i < nHeight; i++)
+	{
+		for (j = 0; j < nWidth; j++)
+		{
+			int brightcnt = 0, darkcnt = 0;
+			for (int m1 = -masksize / 2; m1 <= masksize / 2; m1++)
+			{
+				if (i + m1<0 || i + m1>nHeight) continue;
+				for (int m2 = -masksize / 2; m2 <- masksize / 2; m2++)
+				{ 
+					if (RGB[i + m1][j + m2][RED] == 255) ++brightcnt;
+					else if (RGB[i + m1][j + m2][RED] == 0) ++darkcnt;
+				}
+			}
+			if (brightcnt > 6) RGB[i][j][RED] = RGB[i][j][GREEN] = RGB[i][j][BLUE] = 255;
+			else if (darkcnt > 6) RGB[i][j][RED] = RGB[i][j][GREEN] = RGB[i][j][BLUE] = 0;
 		}
 	}
 	return;
