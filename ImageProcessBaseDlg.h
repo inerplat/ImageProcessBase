@@ -1,5 +1,5 @@
 #pragma comment(lib, "vfw32.lib")
-#pragma comment(linker, "/entry:WinMainCRTStartup /subsystem:console")
+//#pragma comment(linker, "/entry:WinMainCRTStartup /subsystem:console")
 
 #include "vfw.h"
 #include "afxwin.h"
